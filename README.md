@@ -241,9 +241,6 @@ We plan to continuously improve this project with the following enhancements:
 
 We welcome contributions to this project! If you'd like to contribute, please fork the repository, create a new branch, make your changes, and submit a pull request. Ensure your code adheres to good coding practices and includes relevant tests.
 
-## License
-
-This project is licensed under the MIT License - see the `LICENSE` file for details. *(You should create a `LICENSE` file in your repository if you haven't already).*
 
 ## Contact
 
@@ -251,5 +248,9 @@ For any questions or collaborations, feel free to reach out to the project team:
 
 * **Arun S:** [Your GitHub Profile Link or Email]
 * [cite_start]**Laxsman Karthik S:** [https://github.com/laxsman-karthik-s](https://github.com/laxsman-karthik-s/Car_damage_classification-Cost_prediction) [cite: 14]
+
+
+<img width="701" height="150" alt="image" src="https://github.com/user-attachments/assets/a15c1af0-9d4f-4fef-bc62-77919dbaea06" />
+<img width="676" height="698" alt="image" src="https://github.com/user-attachments/assets/f4622b68-cda5-452f-8e17-d911620a6b8f" />
 
 ---
