@@ -190,7 +190,7 @@ To get a copy of the project up and running on your local machine, follow these 
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/laxsman-karthik-s/Car_damage_classification-Cost_prediction.git](https://github.com/laxsman-karthik-s/Car_damage_classification-Cost_prediction.git)
+    git clone 
     cd Car_damage_classification-Cost_prediction
     ```
 2.  **Create a virtual environment (recommended):**
