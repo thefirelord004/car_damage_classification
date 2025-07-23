@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Car Damage Detection</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 0;
+      background-color: #f4f4f9;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h1, h2 {
+      text-align: center;
+      color: #333;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #e7f5ff;
+    }
+    .result p {
+      margin: 5px 0;
+    }
+    .result table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    .result table, .result th, .result td {
+      border: 1px solid #ddd;
+    }
+    .result th, .result td {
+      padding: 10px;
+      text-align: left;
+    }
+    .result th {
+      background-color: #f2f2f2;
+    }
+    .highlight {
+      color: green;
+      font-weight: bold;
+    }
+    .error {
+      color: red;
+    }
+    .button {
+      display: inline-block;
+      padding: 10px 15px;
+      font-size: 16px;
+      color: white;
+      background-color: #007bff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .button:hover {
+      background-color: #0056b3;
+    }
+    .uploaded-image {
+      max-width: 100%;
+      max-height: 300px;
+      display: block;
+      margin: 20px auto;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Car Damage Detection</h1>
+    <form id="upload-form">
+      <input type="file" id="image" name="file" accept="image/*" required>
+      <button class="button" type="submit">Upload and Analyze</button>
+    </form>
+
+    <div id="result-container" class="result" style="display: none;">
+      <h2>Analysis Result</h2>
+      <img id="uploaded-image" class="uploaded-image" src="" alt="Uploaded car image">
+      <p><strong>Is Car:</strong> <span id="is-car" class="highlight"></span></p>
+      <p><strong>Is Damaged:</strong> <span id="is-damaged" class="highlight"></span></p>
+      <p><strong>Damage Confidence:</strong> <span id="damage-confidence"></span></p>
+
+      <h3>Damage Locations:</h3>
+      <table id="damage-locations-table">
+        <thead>
+          <tr>
+            <th>Location</th>
+            <th>Confidence</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <h3>Damage Severity:</h3>
+      <p><strong>Severity Label:</strong> <span id="severity-label"></span></p>
+      <p><strong>Severity Confidence:</strong> <span id="severity-confidence"></span></p>
+
+      <h3>Estimated Repair Cost:</h3>
+      <p><strong>Cost:</strong> ₹<span id="repair-cost"></span></p>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('upload-form');
+    const resultContainer = document.getElementById('result-container');
+    const uploadedImage = document.getElementById('uploaded-image');
+
+    form.onsubmit = async (event) => {
+      event.preventDefault();
+      const fileInput = document.getElementById('image');
+      const file = fileInput.files[0];
+      
+      // Display the uploaded image
+      const reader = new FileReader();
+      reader.onload = () => {
+        uploadedImage.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await fetch('http://127.0.0.1:5000/predict', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to analyze the image');
+        }
+
+        const data = await response.json();
+        displayResult(data);
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    };
+
+    function displayResult(data) {
+      const resultContainer = document.getElementById('result-container');
+    
+      // Check if the uploaded image is a car
+      if (!data.is_car) {
+        document.getElementById('is-car').textContent = 'No';
+        document.getElementById('is-damaged').textContent = '-';
+        document.getElementById('damage-confidence').textContent = '-';
+        document.getElementById('damage-locations-table').querySelector('tbody').innerHTML = '';
+        document.getElementById('severity-label').textContent = '-';
+        document.getElementById('severity-confidence').textContent = '-';
+        document.getElementById('repair-cost').textContent = '-';
+        alert("The uploaded image is not a car.");
+        resultContainer.style.display = 'block';
+        return;
+      }
+      
+      document.getElementById('is-car').textContent = 'Yes';
+
+      // Check if the car is damaged
+      if (!data.is_damaged) {
+        document.getElementById('is-damaged').textContent = 'No';
+        document.getElementById('damage-confidence').textContent = '-';
+        document.getElementById('damage-locations-table').querySelector('tbody').innerHTML = '';
+        document.getElementById('severity-label').textContent = '-';
+        document.getElementById('severity-confidence').textContent = '-';
+        document.getElementById('repair-cost').textContent = '-';
+        alert("The car is not damaged.");
+        resultContainer.style.display = 'block';
+        return;
+      }
+
+      // If the car is damaged, display all outputs
+      document.getElementById('is-damaged').textContent = 'Yes';
+      document.getElementById('damage-confidence').textContent = data.damage_confidence.toFixed(6);
+
+      // Display damage locations
+      const damageLocationsTable = document.getElementById('damage-locations-table').querySelector('tbody');
+      damageLocationsTable.innerHTML = '';
+      data.damage_locations.forEach((location) => {
+        const row = document.createElement('tr');
+        const locCell = document.createElement('td');
+        const confCell = document.createElement('td');
+        locCell.textContent = location.location;
+        confCell.textContent = location.confidence.toFixed(6);
+        row.appendChild(locCell);
+        row.appendChild(confCell);
+        damageLocationsTable.appendChild(row);
+      });
+
+      document.getElementById('severity-label').textContent = data.damage_severity.label;
+      document.getElementById('severity-confidence').textContent = data.damage_severity.confidence.toFixed(6);
+      document.getElementById('repair-cost').textContent = data.estimated_repair_cost.toFixed(2);
+
+      resultContainer.style.display = 'block';
+    }
+
+  </script>
+</body>
+</html>
+<!--function displayResult(data) {
+      document.getElementById('is-car').textContent = data.is_car ? 'Yes' : 'No';
+      document.getElementById('is-damaged').textContent = data.is_damaged ? 'Yes' : 'No';
+      document.getElementById('damage-confidence').textContent = data.damage_confidence.toFixed(6);
+
+      const damageLocationsTable = document.getElementById('damage-locations-table').querySelector('tbody');
+      damageLocationsTable.innerHTML = '';
+      data.damage_locations.forEach((location) => {
+        const row = document.createElement('tr');
+        const locCell = document.createElement('td');
+        const confCell = document.createElement('td');
+        locCell.textContent = location.location;
+        confCell.textContent = location.confidence.toFixed(6);
+        row.appendChild(locCell);
+        row.appendChild(confCell);
+        damageLocationsTable.appendChild(row);
+      });
+
+      document.getElementById('severity-label').textContent = data.damage_severity.label;
+      document.getElementById('severity-confidence').textContent = data.damage_severity.confidence.toFixed(6);
+      document.getElementById('repair-cost').textContent = data.estimated_repair_cost.toFixed(2);
+
+      resultContainer.style.display = 'block';
+    }-->
